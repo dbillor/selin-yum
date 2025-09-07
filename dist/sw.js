@@ -1,5 +1,5 @@
 
-const CACHE_NAME = 'selin-baby-log-v1';
+const CACHE_NAME = 'selin-baby-log-v2';
 const ASSETS = [
   '/',
   '/index.html',
@@ -21,6 +21,12 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   if (request.method !== 'GET') return;
+  const url = new URL(request.url);
+  // Never cache API requests; let them hit the network for fresh data
+  if (url.pathname.startsWith('/api')) return;
+  // Only cache same-origin assets
+  if (url.origin !== self.location.origin) return;
+
   event.respondWith(
     caches.match(request).then(cached => cached || fetch(request).then(resp => {
       const copy = resp.clone();

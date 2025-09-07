@@ -3,9 +3,12 @@
 import { createServer } from 'http'
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs'
 import { parse } from 'url'
+import { fileURLToPath } from 'url'
+import path from 'path'
 
-const DATA_DIR = new URL('./data/', import.meta.url)
-const DATA_PATH = new URL('./data/db.json', import.meta.url)
+const DEFAULT_DIR_URL = new URL('./data/', import.meta.url)
+const DATA_DIR = process.env.DATA_DIR || fileURLToPath(DEFAULT_DIR_URL)
+const DATA_PATH = path.join(DATA_DIR, 'db.json')
 
 function ensureStore() {
   if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true })
@@ -129,4 +132,3 @@ server.listen(port, () => {
   // eslint-disable-next-line no-console
   console.log(`API listening on http://localhost:${port}`)
 })
-

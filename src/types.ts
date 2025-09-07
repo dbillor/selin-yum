@@ -38,14 +38,6 @@ export interface Growth {
   notes?: string;
 }
 
-export interface Med {
-  id?: number;
-  datetime: string;
-  name: string; // e.g., 'Vitamin D'
-  dose: string; // e.g., '400 IU'
-  notes?: string;
-}
-
 export interface BabyProfile {
   id?: number;
   name: string;

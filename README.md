@@ -1,6 +1,6 @@
 
-# Selin • Baby Log (offline-first)
-Beautiful, simple, and evidence-informed baby feeding / diaper / sleep / growth tracker for web. Optimized for one-handed mobile use and deployable on Vercel or any static host.
+# Selin • Baby Log
+Beautiful, simple, and evidence-informed baby feeding / diaper / sleep / growth tracker for web. Optimized for one-handed mobile use. Online by default.
 
 **Default profile:** Selin Billor — born 2025-09-04 23:53.
 
@@ -10,7 +10,7 @@ Beautiful, simple, and evidence-informed baby feeding / diaper / sleep / growth 
 - **Sleep** sessions with notes.
 - **Growth** (weight, length, head) with trend charts.
 - **Dashboard** with age, daily counts, and science-backed tips.
-- **Offline-first PWA**: install to home screen. Diapers/Sleep/Growth default to local (IndexedDB). Feedings are saved to the backend API.
+- **PWA**: install to home screen; static assets are cached. Data persists to the backend.
 - **Export/Import JSON** for backups or device transfer.
 - **No server required**. Privacy-friendly by default.
 
@@ -34,9 +34,41 @@ npm run dev
 ```
 You can also host on Netlify, GitHub Pages, Cloudflare Pages, etc.
 
+### Online by default
+The app requires a reachable backend.
+
+1) Backend
+   - Easiest: deploy the included Node API (`server/server.js`) to Render using the provided `render.yaml` blueprint. It provisions a persistent disk and stores data under `/data/selin/db.json`.
+   - Alternative: implement `/api/*` using Vercel Serverless + Vercel Postgres.
+
+2) Point the frontend at your backend
+   - Set `VITE_API_URL=https://your-api-base/api` in your frontend host (Vercel/Netlify) and redeploy.
+   - No local fallback is used; ensure the API is reachable.
+
+3) Local dev
+   - `npm run server` starts the API on 8787, and `npm run dev` proxies `/api` to it.
+
+### Offline behavior
+Static assets load from cache when available; data operations require the backend and will not fall back to local storage.
+
+### One‑click Render (backend)
+This repo includes a Render Blueprint at `render.yaml` (with a persistent disk).
+
+Steps:
+- Push this repo to GitHub.
+- In Render: New → Blueprint → choose your repo; it will detect `render.yaml`.
+- Confirm the `selin-baby-api` service; deploy. Health path `/api/health` should return 200.
+- Copy your service URL (e.g., `https://selin-baby-api.onrender.com`). Set your frontend `VITE_API_URL=https://selin-baby-api.onrender.com/api` and redeploy the frontend.
+
+- Deploy the minimal API in `server/server.js` to a host with persistent storage (e.g., Render, Fly.io, Railway, a small VPS), or use your own backend.
+- Expose routes under `/api/*` and ensure `/api/health` returns 200.
+- Set `VITE_API_URL` to your API base (e.g., `https://your-host/api`) in your Netlify/Vercel project environment vars, then rebuild/deploy.
+
+When the app detects a reachable backend, it uses it for all CRUD; otherwise it falls back to local storage.
+
 ## Design choices
 - Client-side React (Vite + TypeScript + Tailwind), with a tiny built-in backend for persistence where needed.
-- PWA with a tiny service worker and manifest for offline use.
+- PWA with a tiny service worker and manifest for caching static assets only.
 - Evidence-informed defaults and helper text from AAP/CDC/WHO.
 - Conservative scope: trend charts (not percentiles) to avoid embedding large WHO LMS datasets; link to official charts instead.
 

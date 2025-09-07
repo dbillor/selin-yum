@@ -2,17 +2,18 @@
 import { useEffect, useMemo, useState } from 'react'
 import Card from '../components/Card'
 import { StatPill } from '../components/StatPill'
-import { getBaby, getDiapers, getFeedings, getSleeps, addFeeding } from '../api'
+import { getBaby, getDiapers, getFeedings, getSleeps, addFeeding, getGrowth } from '../api'
 import { Link } from 'react-router-dom'
-import type { Feeding, Diaper, Sleep, BabyProfile } from '../types'
+import type { Feeding, Diaper, Sleep, BabyProfile, Growth } from '../types'
 import { ageFromBirth, wetDiaperTarget, stoolTarget } from '../utils'
-import { startOfDay, endOfDay, isAfter, parseISO } from 'date-fns'
+import { startOfDay, endOfDay, differenceInMinutes } from 'date-fns'
 
 export default function Dashboard(){
   const [baby, setBaby] = useState<BabyProfile | null>(null)
   const [feedings, setFeedings] = useState<Feeding[]>([])
   const [diapers, setDiapers] = useState<Diaper[]>([])
   const [sleeps, setSleeps] = useState<Sleep[]>([])
+  const [growth, setGrowth] = useState<Growth[]>([])
 
   useEffect(() => {
     (async () => {
@@ -28,6 +29,7 @@ export default function Dashboard(){
       setFeedings(allFeedings.filter(f => f.datetime >= sd && f.datetime <= ed))
       setDiapers(allDiapers.filter(d => d.datetime >= sd && d.datetime <= ed))
       setSleeps(allSleeps.filter(s => s.start <= ed))
+      setGrowth(await getGrowth())
     })()
   }, [])
 
@@ -45,6 +47,42 @@ export default function Dashboard(){
 
   const lastFeeding = feedings.sort((a,b) => (a.datetime > b.datetime ? -1 : 1))[0]
 
+  type Insight = { severity: 'warn' | 'info', text: string }
+  const insights: Insight[] = useMemo(() => {
+    const out: Insight[] = []
+    const now = new Date()
+
+    if (baby && lastFeeding) {
+      const mins = differenceInMinutes(now, new Date(lastFeeding.datetime))
+      if (mins >= 180) out.push({ severity: 'warn', text: `It’s been ${Math.floor(mins/60)}h ${mins%60}m since last feeding — consider offering a feed.` })
+      else if (mins >= 120) out.push({ severity: 'info', text: `Last feeding ${Math.floor(mins/60)}h ${mins%60}m ago — next may be soon.` })
+    } else if (baby && feedings.length === 0) {
+      out.push({ severity: 'info', text: 'No feedings logged yet today.' })
+    }
+
+    if (baby) {
+      const wet = diapers.filter(d => d.type !== 'dirty').length
+      const stool = diapers.filter(d => d.type !== 'wet').length
+      const wetTarget = wetDiaperTarget(dayOfLife)
+      const stoolGoal = stoolTarget(dayOfLife)
+      const hour = now.getHours()
+      if (wet < wetTarget && hour >= 18) out.push({ severity: 'warn', text: `Wet diapers: ${wet} so far; aim ≥ ${wetTarget} by day’s end.` })
+      else out.push({ severity: 'info', text: `Wet diapers so far: ${wet} (target ≥ ${wetTarget} by day’s end).` })
+      if (stool < stoolGoal && hour >= 18) out.push({ severity: 'warn', text: `Stools: ${stool} so far; goal ≥ ${stoolGoal} by day’s end.` })
+      else out.push({ severity: 'info', text: `Stools so far: ${stool} (goal ≥ ${stoolGoal} by day’s end).` })
+    }
+
+    if (growth && growth.length > 0) {
+      const last = growth.slice().sort((a,b)=> a.datetime > b.datetime ? -1 : 1)[0]
+      const daysSince = Math.floor((startOfDay(new Date()).getTime() - startOfDay(new Date(last.datetime)).getTime())/(24*3600*1000))
+      if (daysSince >= 7) out.push({ severity: 'info', text: `Last growth entry ${daysSince} day(s) ago — consider a weekly check.` })
+    } else {
+      out.push({ severity: 'info', text: 'Add a growth measurement when convenient to start trends.' })
+    }
+
+    return out
+  }, [baby, lastFeeding, feedings, diapers, growth, dayOfLife])
+
   return (
     <div className="grid gap-4 md:grid-cols-3">
       <div className="md:col-span-2 space-y-4">
@@ -55,6 +93,14 @@ export default function Dashboard(){
             <StatPill label="Wet diapers (today)" value={diapers.filter(d=>d.type!=='dirty').length} sub={`Target ≥ ${wetTarget}`} />
             <StatPill label="Stools (today)" value={diapers.filter(d=>d.type!=='wet').length} sub={`Target ≥ ${stoolGoal}`} />
           </div>
+        </Card>
+
+        <Card title="Today’s insights">
+          <ul className="list-disc pl-5 space-y-1 text-sm">
+            {insights.map((i, idx) => (
+              <li key={idx} className={i.severity==='warn' ? 'text-red-700' : 'text-gray-700'}>{i.text}</li>
+            ))}
+          </ul>
         </Card>
 
         <Card title="Quick log">
