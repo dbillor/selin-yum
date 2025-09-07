@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import Header from './components/Header'
 import Banner from './components/Banner'
 import { backendReachable, getBaby, saveBaby, getGrowth, addGrowth } from './api'
+import { fromDatetimeLocalPacific } from './utils'
 import Dashboard from './pages/Dashboard'
 import FeedingPage from './pages/FeedingPage'
 import DiaperPage from './pages/DiaperPage'
@@ -39,7 +40,7 @@ export default function App(){
 
         // Seed default profile and birth weight if backend is online and profile is empty
         if (!cancelled && onlineFlag && !baby) {
-          const birthIso = new Date('2025-09-04T23:53:00').toISOString()
+          const birthIso = fromDatetimeLocalPacific('2025-09-04T23:53')
           await saveBaby({ name: 'Selin Billor', birthIso })
           const growth = await getGrowth()
           if (!growth || growth.length === 0) {

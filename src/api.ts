@@ -116,9 +116,9 @@ export async function getMedications(): Promise<MedicationDose[]> {
   if (!(await isBackendAvailable())) throw new Error('Backend required but not reachable')
   return json<MedicationDose[]>(`${PREFERRED_API}/medications`)
 }
-export async function addMedication(entry: MedicationDose): Promise<void> {
+export async function addMedication(entry: MedicationDose): Promise<MedicationDose> {
   if (!(await isBackendAvailable())) throw new Error('Backend required but not reachable')
-  await json(`${PREFERRED_API}/medications`, { method: 'POST', body: JSON.stringify(entry) })
+  return json<MedicationDose>(`${PREFERRED_API}/medications`, { method: 'POST', body: JSON.stringify(entry) })
 }
 export async function deleteMedication(id: number): Promise<void> {
   if (!(await isBackendAvailable())) throw new Error('Backend required but not reachable')

@@ -22,6 +22,49 @@ export function formatDateTimePacific(d: Date) {
   return dtf({ dateStyle: 'medium', timeStyle: 'short' }).format(d);
 }
 
+// Convert an instant to a `datetime-local` value string in Pacific time (YYYY-MM-DDTHH:mm)
+export function toDatetimeLocalPacific(instant: Date | string) {
+  const d = typeof instant === 'string' ? new Date(instant) : instant;
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: PACIFIC_TZ,
+    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false
+  }).formatToParts(d);
+  const y = parts.find(p => p.type === 'year')?.value || '1970';
+  const m = parts.find(p => p.type === 'month')?.value || '01';
+  const day = parts.find(p => p.type === 'day')?.value || '01';
+  const hh = parts.find(p => p.type === 'hour')?.value || '00';
+  const mm = parts.find(p => p.type === 'minute')?.value || '00';
+  return `${y}-${m}-${day}T${hh}:${mm}`;
+}
+
+// Interpret a `datetime-local` string as Pacific local time and return ISO (UTC)
+export function fromDatetimeLocalPacific(local: string) {
+  // Expect YYYY-MM-DDTHH:mm or seconds too; keep only YYYY-MM-DDTHH:mm
+  const [datePart, timePartRaw] = local.split('T');
+  const timePart = (timePartRaw || '00:00').slice(0,5);
+  const [y, m, d] = datePart.split('-').map(n => parseInt(n, 10));
+  const [hh, mm] = timePart.split(':').map(n => parseInt(n, 10));
+
+  // Try both PDT (-420) and PST (-480) offsets — choose the one that renders back to the same local wall time
+  const offsets = [-420, -480]; // minutes relative to UTC
+  for (const off of offsets) {
+    const t = Date.UTC(y, (m || 1) - 1, d || 1, hh || 0, mm || 0) - off * 60 * 1000;
+    const check = new Intl.DateTimeFormat('en-CA', {
+      timeZone: PACIFIC_TZ,
+      year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false
+    }).formatToParts(new Date(t));
+    const yy = parseInt(check.find(p => p.type === 'year')?.value || '0', 10);
+    const mo = parseInt(check.find(p => p.type === 'month')?.value || '0', 10);
+    const da = parseInt(check.find(p => p.type === 'day')?.value || '0', 10);
+    const ho = parseInt(check.find(p => p.type === 'hour')?.value || '0', 10);
+    const mi = parseInt(check.find(p => p.type === 'minute')?.value || '0', 10);
+    if (yy === y && mo === m && da === d && ho === hh && mi === mm) return new Date(t).toISOString();
+  }
+  // Fallback: assume PST (-480)
+  const fallback = Date.UTC(y, (m || 1) - 1, d || 1, hh || 0, mm || 0) - (-480) * 60 * 1000;
+  return new Date(fallback).toISOString();
+}
+
 // YYYY-MM-DD key for a Date when viewed in Pacific Time
 export function pacificDateKey(d: Date | string) {
   const date = typeof d === 'string' ? new Date(d) : d;

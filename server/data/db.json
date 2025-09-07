@@ -1,11 +1,11 @@
 {
   "seq": {
-    "feedings": 12,
-    "diapers": 2,
+    "feedings": 15,
+    "diapers": 3,
     "sleeps": 1,
     "growth": 2,
     "baby": 2,
-    "medications": 1
+    "medications": 15
   },
   "feedings": [
     {
@@ -54,6 +54,27 @@
       "method": "breast",
       "side": "left",
       "durationMin": 10
+    },
+    {
+      "id": 12,
+      "datetime": "2025-09-07T22:44:10.716Z",
+      "method": "breast",
+      "side": "left",
+      "durationMin": 10
+    },
+    {
+      "id": 13,
+      "datetime": "2025-09-07T22:44:14.404Z",
+      "method": "breast",
+      "side": "left",
+      "durationMin": 10
+    },
+    {
+      "id": 14,
+      "datetime": "2025-09-07T22:46:12.985Z",
+      "method": "breast",
+      "side": "left",
+      "durationMin": 10
     }
   ],
   "diapers": [
@@ -61,6 +82,11 @@
       "id": 1,
       "datetime": "2025-09-07T04:45:00.000-08:00",
       "type": "poop"
+    },
+    {
+      "id": 2,
+      "datetime": "2025-09-07T22:41:53.163Z",
+      "type": "wet"
     }
   ],
   "sleeps": [],
@@ -76,7 +102,24 @@
     {
       "id": 1,
       "name": "Selin Billor",
-      "birthIso": "2025-09-04T23:53:00.000-08:00"
+      "birthIso": "2025-09-05T06:53:00.000Z"
+    }
+  ],
+  "medications": [
+    {
+      "id": 12,
+      "name": "ibuprofen",
+      "datetime": "2025-09-07T22:36:00.000Z"
+    },
+    {
+      "id": 13,
+      "name": "acetaminophen",
+      "datetime": "2025-09-07T22:37:00.000Z"
+    },
+    {
+      "id": 14,
+      "name": "acetaminophen",
+      "datetime": "2025-09-07T22:37:00.000Z"
     }
   ]
 }

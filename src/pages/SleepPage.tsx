@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import Card from '../components/Card'
 import { addSleep, deleteSleep, getSleeps } from '../api'
 import type { Sleep } from '../types'
-import { prettyDateTime } from '../utils'
+import { prettyDateTime, toDatetimeLocalPacific, fromDatetimeLocalPacific } from '../utils'
 
 export default function SleepPage(){
   const [entries, setEntries] = useState<Sleep[]>([])
@@ -34,14 +34,14 @@ export default function SleepPage(){
       <Card title="Log sleep" actions={justSaved ? <span className="text-sm text-green-700 animate-pop">Saved!</span> : null}>
         <form onSubmit={submit} className="grid gap-3 text-sm">
           <label className="grid gap-1">
-            <span className="text-xs font-medium">Start</span>
-            <input type="datetime-local" className="input" value={form.start.slice(0,16)}
-              onChange={e=>setForm({...form, start: new Date(e.target.value).toISOString()})} required/>
+            <span className="text-xs font-medium">Start (Pacific)</span>
+            <input type="datetime-local" className="input" value={toDatetimeLocalPacific(form.start)}
+              onChange={e=>setForm({...form, start: fromDatetimeLocalPacific(e.target.value)})} required/>
           </label>
           <label className="grid gap-1">
-            <span className="text-xs font-medium">End (optional)</span>
-            <input type="datetime-local" className="input" value={(form.end||'').slice(0,16)}
-              onChange={e=>setForm({...form, end: new Date(e.target.value).toISOString()})}/>
+            <span className="text-xs font-medium">End (optional, Pacific)</span>
+            <input type="datetime-local" className="input" value={form.end ? toDatetimeLocalPacific(form.end) : ''}
+              onChange={e=>setForm({...form, end: e.target.value ? fromDatetimeLocalPacific(e.target.value) : undefined})}/>
           </label>
           <label className="grid gap-1">
             <span className="text-xs font-medium">Notes</span>

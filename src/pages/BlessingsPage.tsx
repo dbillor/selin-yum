@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Card from '../components/Card'
 import { getBaby } from '../api'
 import type { BabyProfile } from '../types'
-import { ageFromBirth, prettyDateTime } from '../utils'
+import { ageFromBirth, prettyDateTime, fromDatetimeLocalPacific } from '../utils'
 import FeedRaceGame from '../components/FeedRaceGame'
 
 const VIRGO_ASCII = `
@@ -59,7 +59,7 @@ export default function BlessingsPage(){
   useEffect(() => { getBaby().then(setBaby) }, [])
 
   // Fallback birth if profile not yet saved
-  const fallbackBirth = useMemo(() => new Date('2025-09-04T23:53:00'), [])
+  const fallbackBirth = useMemo(() => new Date(fromDatetimeLocalPacific('2025-09-04T23:53')), [])
   const birth = baby?.birthIso ? new Date(baby.birthIso) : fallbackBirth
   const age = ageFromBirth(birth.toISOString())
   const name = baby?.name || 'Selin'

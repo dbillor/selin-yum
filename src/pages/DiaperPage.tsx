@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import Card from '../components/Card'
 import { addDiaper, deleteDiaper, getDiapers, getBaby } from '../api'
 import type { Diaper, BabyProfile } from '../types'
-import { prettyDateTime, ageFromBirth, wetDiaperTarget, stoolTarget, pacificDateKey } from '../utils'
+import { prettyDateTime, ageFromBirth, wetDiaperTarget, stoolTarget, pacificDateKey, toDatetimeLocalPacific, fromDatetimeLocalPacific } from '../utils'
 import { startOfDay } from 'date-fns'
 
 export default function DiaperPage(){
@@ -35,12 +35,7 @@ export default function DiaperPage(){
   const [justSaved, setJustSaved] = useState(false)
   function triggerSaved(){ setJustSaved(true); setTimeout(()=>setJustSaved(false), 900) }
 
-  const dayOfLife = (() => {
-    if (!baby) return 0
-    const birth = new Date(baby.birthIso)
-    const now = new Date()
-    return Math.floor((startOfDay(now).getTime()-startOfDay(birth).getTime())/(24*3600*1000))
-  })()
+  const dayOfLife = baby ? ageFromBirth(baby.birthIso).days : 0
 
   const todayKey = pacificDateKey(new Date())
   const todayWet = entries.filter(e=>e.type!=='dirty' && pacificDateKey(new Date(e.datetime)) === todayKey).length
@@ -51,9 +46,9 @@ export default function DiaperPage(){
       <Card title="Log a diaper" actions={justSaved ? <span className="text-sm text-green-700 animate-pop">Saved!</span> : null}>
         <form onSubmit={submit} className="grid gap-3 text-sm">
           <label className="grid gap-1">
-            <span className="text-xs font-medium">Date & time</span>
-            <input type="datetime-local" className="input" value={form.datetime.slice(0,16)}
-              onChange={e=>setForm({...form, datetime: new Date(e.target.value).toISOString()})} required/>
+            <span className="text-xs font-medium">Date & time (Pacific)</span>
+            <input type="datetime-local" className="input" value={toDatetimeLocalPacific(form.datetime)}
+              onChange={e=>setForm({...form, datetime: fromDatetimeLocalPacific(e.target.value)})} required/>
           </label>
           <label className="grid gap-1">
             <span className="text-xs font-medium">Type</span>

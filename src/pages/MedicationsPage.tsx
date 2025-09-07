@@ -2,11 +2,16 @@ import { useEffect, useMemo, useState } from 'react'
 import Card from '../components/Card'
 import { addMedication, deleteMedication, getMedications } from '../api'
 import type { MedicationDose, MedicationName } from '../types'
-import { formatDateTimePacific, pacificDateKey, prettyDateTime } from '../utils'
+import { formatDateTimePacific, pacificDateKey, prettyDateTime, toDatetimeLocalPacific, fromDatetimeLocalPacific } from '../utils'
 
 export default function MedicationsPage(){
   const [entries, setEntries] = useState<MedicationDose[]>([])
   const [justSaved, setJustSaved] = useState(false)
+  // Controlled state for custom-entry form (more reliable than FormData)
+  const [cName, setCName] = useState<MedicationName>('ibuprofen')
+  const [cDt, setCDt] = useState<string>(() => toDatetimeLocalPacific(new Date()))
+  const [cDose, setCDose] = useState<string>('')
+  const [cNotes, setCNotes] = useState<string>('')
 
   useEffect(()=>{ getMedications().then(setEntries) }, [])
 
@@ -23,21 +28,27 @@ export default function MedicationsPage(){
 
   async function logNow(name: MedicationName){
     const entry: MedicationDose = { name, datetime: new Date().toISOString() }
-    await addMedication(entry)
-    setEntries(await getMedications())
+    const created = await addMedication(entry)
+    setEntries(prev => [created, ...prev])
     triggerSaved()
   }
 
   async function addCustom(e: React.FormEvent<HTMLFormElement>){
     e.preventDefault()
-    const fd = new FormData(e.currentTarget)
-    const name = (fd.get('name') as MedicationName)
-    const datetimeLocal = String(fd.get('dt'))
-    if (!datetimeLocal) return
-    const entry: MedicationDose = { name, datetime: new Date(datetimeLocal).toISOString(), doseMg: fd.get('dose') ? parseInt(String(fd.get('dose')), 10) : undefined, notes: String(fd.get('notes') || '') || undefined }
-    await addMedication(entry)
-    e.currentTarget.reset()
-    setEntries(await getMedications())
+    if (!cDt) return
+    const entry: MedicationDose = {
+      name: cName,
+      datetime: fromDatetimeLocalPacific(cDt),
+      doseMg: cDose ? parseInt(cDose, 10) : undefined,
+      notes: cNotes || undefined,
+    }
+    const created = await addMedication(entry)
+    // Reset fields and refresh list
+    setCName('ibuprofen')
+    setCDt(toDatetimeLocalPacific(new Date()))
+    setCDose('')
+    setCNotes('')
+    setEntries(prev => [created, ...prev])
     triggerSaved()
   }
 
@@ -80,22 +91,22 @@ export default function MedicationsPage(){
             <form className="grid md:grid-cols-2 gap-3" onSubmit={addCustom}>
               <label className="grid gap-1">
                 <span className="text-xs font-medium">Medication</span>
-                <select name="name" className="input" defaultValue={next.name}>
+                <select name="name" className="input" value={cName} onChange={e=>setCName(e.target.value as MedicationName)}>
                   <option value="ibuprofen">Ibuprofen</option>
                   <option value="acetaminophen">Acetaminophen</option>
                 </select>
               </label>
               <label className="grid gap-1">
-                <span className="text-xs font-medium">Date & time</span>
-                <input name="dt" type="datetime-local" className="input" required />
+                <span className="text-xs font-medium">Date & time (Pacific)</span>
+                <input name="dt" type="datetime-local" className="input" value={cDt} onChange={e=>setCDt(e.target.value)} required />
               </label>
               <label className="grid gap-1">
                 <span className="text-xs font-medium">Dose (mg) (optional)</span>
-                <input name="dose" type="number" className="input" min={0} step={50} />
+                <input name="dose" type="number" className="input" min={0} step={50} value={cDose} onChange={e=>setCDose(e.target.value)} />
               </label>
               <label className="grid gap-1">
                 <span className="text-xs font-medium">Notes</span>
-                <input name="notes" className="input" placeholder="e.g., with food" />
+                <input name="notes" className="input" placeholder="e.g., with food" value={cNotes} onChange={e=>setCNotes(e.target.value)} />
               </label>
               <div className="md:col-span-2">
                 <button className="px-3 py-2 bg-indigo-600 text-white rounded-md">Add entry</button>
@@ -134,4 +145,3 @@ export default function MedicationsPage(){
     </div>
   )
 }
-

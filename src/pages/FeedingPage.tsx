@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Card from '../components/Card'
 import { addFeeding, deleteFeeding, getFeedings } from '../api'
 import type { Feeding } from '../types'
-import { prettyDateTime, mlToOz, ozToMl, formatDatePacific, pacificDateKey, formatDateTimePacific } from '../utils'
+import { prettyDateTime, mlToOz, ozToMl, formatDatePacific, pacificDateKey, formatDateTimePacific, toDatetimeLocalPacific, fromDatetimeLocalPacific } from '../utils'
 import { Line } from 'react-chartjs-2'
 import { Chart as ChartJS, LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend } from 'chart.js'
 
@@ -44,9 +44,9 @@ export default function FeedingPage(){
       <Card title="Log a feeding" actions={justSaved ? <span className="text-sm text-green-700 animate-pop">Saved!</span> : null}>
         <form onSubmit={submit} className="grid gap-3 text-sm">
           <label className="grid gap-1">
-            <span className="text-xs font-medium">Date & time</span>
-            <input type="datetime-local" className="input" value={form.datetime.slice(0,16)}
-              onChange={e=>setForm({...form, datetime: new Date(e.target.value).toISOString()})} required/>
+            <span className="text-xs font-medium">Date & time (Pacific)</span>
+            <input type="datetime-local" className="input" value={toDatetimeLocalPacific(form.datetime)}
+              onChange={e=>setForm({...form, datetime: fromDatetimeLocalPacific(e.target.value)})} required/>
           </label>
           <label className="grid gap-1">
             <span className="text-xs font-medium">Method</span>

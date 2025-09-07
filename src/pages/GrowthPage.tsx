@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import Card from '../components/Card'
 import { addGrowth, deleteGrowth, getGrowth } from '../api'
 import type { Growth } from '../types'
-import { prettyDateTime, formatDatePacific } from '../utils'
+import { prettyDateTime, formatDatePacific, toDatetimeLocalPacific, fromDatetimeLocalPacific } from '../utils'
 import { Line } from 'react-chartjs-2'
 import {
   Chart as ChartJS, LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend
@@ -47,9 +47,9 @@ export default function GrowthPage(){
       <Card title="Record a measurement" actions={justSaved ? <span className="text-sm text-green-700 animate-pop">Saved!</span> : null}>
         <form onSubmit={submit} className="grid md:grid-cols-4 gap-3 text-sm">
           <label className="grid gap-1">
-            <span className="text-xs font-medium">Date</span>
-            <input type="datetime-local" className="input" value={form.datetime.slice(0,16)}
-              onChange={e=>setForm({...form, datetime: new Date(e.target.value).toISOString()})} required/>
+            <span className="text-xs font-medium">Date (Pacific)</span>
+            <input type="datetime-local" className="input" value={toDatetimeLocalPacific(form.datetime)}
+              onChange={e=>setForm({...form, datetime: fromDatetimeLocalPacific(e.target.value)})} required/>
           </label>
           <label className="grid gap-1">
             <span className="text-xs font-medium">Weight (g)</span>

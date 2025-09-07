@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import Card from '../components/Card'
 import { getBaby, saveBaby, exportAll, importAll } from '../api'
 import type { BabyProfile } from '../types'
+import { toDatetimeLocalPacific, fromDatetimeLocalPacific } from '../utils'
 
 export default function SettingsPage(){
   const [baby, setBaby] = useState<BabyProfile | null>(null)
@@ -45,9 +46,9 @@ export default function SettingsPage(){
               <input className="input" value={baby.name} onChange={e=>setBaby({...baby, name: e.target.value})}/>
             </label>
             <label className="grid gap-1">
-              <span className="text-xs font-medium">Birth date/time</span>
-              <input type="datetime-local" className="input" value={baby.birthIso.slice(0,16)}
-                onChange={e=>setBaby({...baby, birthIso: new Date(e.target.value).toISOString()})}/>
+              <span className="text-xs font-medium">Birth date/time (Pacific)</span>
+              <input type="datetime-local" className="input" value={toDatetimeLocalPacific(baby.birthIso)}
+                onChange={e=>setBaby({...baby, birthIso: fromDatetimeLocalPacific(e.target.value)})}/>
             </label>
             <div className="md:col-span-3">
               <button className="px-3 py-2 bg-indigo-600 text-white rounded-md">Save</button>

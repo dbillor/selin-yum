@@ -85,7 +85,16 @@ function ensureStore() {
 function load() {
   ensureStore()
   const raw = readFileSync(DATA_PATH, 'utf8')
-  return JSON.parse(raw)
+  const db = JSON.parse(raw)
+  // Upgrade/migrate shape to include any new collections or seq counters
+  const cols = ['feedings','diapers','sleeps','growth','baby','medications']
+  if (!db.seq || typeof db.seq !== 'object') db.seq = {}
+  for (const c of cols) {
+    if (!Array.isArray(db[c])) db[c] = []
+    const maxId = db[c].reduce((m, r) => (typeof r?.id === 'number' && r.id > m ? r.id : m), 0)
+    if (typeof db.seq[c] !== 'number' || !isFinite(db.seq[c])) db.seq[c] = maxId + 1
+  }
+  return db
 }
 
 function save(db) {
