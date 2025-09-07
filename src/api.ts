@@ -1,5 +1,5 @@
 // API wrapper — backend required
-import type { Feeding, Diaper, Sleep, Growth, BabyProfile } from './types'
+import type { Feeding, Diaper, Sleep, Growth, BabyProfile, MedicationDose } from './types'
 
 // Preferred API base. In dev, Vite proxies '/api' to the local server.
 const PREFERRED_API: string | undefined = (import.meta.env.VITE_API_URL as string | undefined) || '/api'
@@ -109,4 +109,18 @@ export async function exportAll() {
 export async function importAll(payload: any) {
   if (!(await isBackendAvailable())) throw new Error('Backend required but not reachable')
   return json(`${PREFERRED_API}/import`, { method: 'POST', body: JSON.stringify(payload) })
+}
+
+// Medications
+export async function getMedications(): Promise<MedicationDose[]> {
+  if (!(await isBackendAvailable())) throw new Error('Backend required but not reachable')
+  return json<MedicationDose[]>(`${PREFERRED_API}/medications`)
+}
+export async function addMedication(entry: MedicationDose): Promise<void> {
+  if (!(await isBackendAvailable())) throw new Error('Backend required but not reachable')
+  await json(`${PREFERRED_API}/medications`, { method: 'POST', body: JSON.stringify(entry) })
+}
+export async function deleteMedication(id: number): Promise<void> {
+  if (!(await isBackendAvailable())) throw new Error('Backend required but not reachable')
+  await json(`${PREFERRED_API}/medications/${id}`, { method: 'DELETE' })
 }

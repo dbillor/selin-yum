@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import Card from '../components/Card'
 import { addDiaper, deleteDiaper, getDiapers, getBaby } from '../api'
 import type { Diaper, BabyProfile } from '../types'
-import { prettyDateTime, ageFromBirth, wetDiaperTarget, stoolTarget } from '../utils'
+import { prettyDateTime, ageFromBirth, wetDiaperTarget, stoolTarget, pacificDateKey } from '../utils'
 import { startOfDay } from 'date-fns'
 
 export default function DiaperPage(){
@@ -42,8 +42,9 @@ export default function DiaperPage(){
     return Math.floor((startOfDay(now).getTime()-startOfDay(birth).getTime())/(24*3600*1000))
   })()
 
-  const todayWet = entries.filter(e=>e.type!=='dirty' && new Date(e.datetime).toDateString() === new Date().toDateString()).length
-  const todayStool = entries.filter(e=>e.type!=='wet' && new Date(e.datetime).toDateString() === new Date().toDateString()).length
+  const todayKey = pacificDateKey(new Date())
+  const todayWet = entries.filter(e=>e.type!=='dirty' && pacificDateKey(new Date(e.datetime)) === todayKey).length
+  const todayStool = entries.filter(e=>e.type!=='wet' && pacificDateKey(new Date(e.datetime)) === todayKey).length
 
   return (
     <div className="grid gap-4 md:grid-cols-2">

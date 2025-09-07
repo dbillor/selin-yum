@@ -13,6 +13,7 @@ import SettingsPage from './pages/SettingsPage'
 import ResourcesPage from './pages/ResourcesPage'
 import LoginPage from './pages/LoginPage'
 import BlessingsPage from './pages/BlessingsPage'
+import MedicationsPage from './pages/MedicationsPage'
 
 export default function App(){
   const [authed, setAuthed] = useState<boolean>(() => {
@@ -84,6 +85,7 @@ export default function App(){
           <Route path="/diapers" element={<DiaperPage />} />
           <Route path="/sleep" element={<SleepPage />} />
           <Route path="/growth" element={<GrowthPage />} />
+          <Route path="/meds" element={<MedicationsPage />} />
           <Route path="/resources" element={<ResourcesPage />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/blessings" element={<BlessingsPage />} />

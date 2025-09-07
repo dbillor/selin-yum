@@ -5,12 +5,13 @@ import { StatPill } from '../components/StatPill'
 import { getBaby, getDiapers, getFeedings, getSleeps, addFeeding, getGrowth } from '../api'
 import { Link } from 'react-router-dom'
 import type { Feeding, Diaper, Sleep, BabyProfile, Growth } from '../types'
-import { ageFromBirth, wetDiaperTarget, stoolTarget } from '../utils'
+import { ageFromBirth, wetDiaperTarget, stoolTarget, pacificDateKey, formatDateTimePacific, PACIFIC_TZ } from '../utils'
 import { startOfDay, endOfDay, differenceInMinutes } from 'date-fns'
 
 export default function Dashboard(){
   const [baby, setBaby] = useState<BabyProfile | null>(null)
   const [feedings, setFeedings] = useState<Feeding[]>([])
+  const [feedingsAll, setFeedingsAll] = useState<Feeding[]>([])
   const [diapers, setDiapers] = useState<Diaper[]>([])
   const [sleeps, setSleeps] = useState<Sleep[]>([])
   const [growth, setGrowth] = useState<Growth[]>([])
@@ -19,15 +20,15 @@ export default function Dashboard(){
     (async () => {
       const bb = await getBaby()
       setBaby(bb)
-      const today = new Date()
-      const sd = startOfDay(today).toISOString()
-      const ed = endOfDay(today).toISOString()
-      // API returns full lists; filter client-side for today to keep API simple
+      // API returns full lists; filter client-side for today (Pacific time) to keep API simple
       const allFeedings = await getFeedings()
       const allDiapers = await getDiapers()
       const allSleeps = await getSleeps()
-      setFeedings(allFeedings.filter(f => f.datetime >= sd && f.datetime <= ed))
-      setDiapers(allDiapers.filter(d => d.datetime >= sd && d.datetime <= ed))
+      const todayKey = pacificDateKey(new Date())
+      setFeedingsAll(allFeedings)
+      setFeedings(allFeedings.filter(f => pacificDateKey(f.datetime) === todayKey))
+      setDiapers(allDiapers.filter(d => pacificDateKey(d.datetime) === todayKey))
+      const ed = endOfDay(new Date()).toISOString()
       setSleeps(allSleeps.filter(s => s.start <= ed))
       setGrowth(await getGrowth())
     })()
@@ -45,7 +46,7 @@ export default function Dashboard(){
   const wetTarget = wetDiaperTarget(dayOfLife)
   const stoolGoal = stoolTarget(dayOfLife)
 
-  const lastFeeding = feedings.sort((a,b) => (a.datetime > b.datetime ? -1 : 1))[0]
+  const lastFeeding = feedingsAll.slice().sort((a,b) => (a.datetime > b.datetime ? -1 : 1))[0]
 
   type Insight = { severity: 'warn' | 'info', text: string }
   const insights: Insight[] = useMemo(() => {
@@ -65,7 +66,8 @@ export default function Dashboard(){
       const stool = diapers.filter(d => d.type !== 'wet').length
       const wetTarget = wetDiaperTarget(dayOfLife)
       const stoolGoal = stoolTarget(dayOfLife)
-      const hour = now.getHours()
+      // Current hour in Pacific time
+      const hour = parseInt(new Intl.DateTimeFormat('en-US', { timeZone: PACIFIC_TZ, hour: '2-digit', hour12: false }).format(now), 10)
       if (wet < wetTarget && hour >= 18) out.push({ severity: 'warn', text: `Wet diapers: ${wet} so far; aim ≥ ${wetTarget} by day’s end.` })
       else out.push({ severity: 'info', text: `Wet diapers so far: ${wet} (target ≥ ${wetTarget} by day’s end).` })
       if (stool < stoolGoal && hour >= 18) out.push({ severity: 'warn', text: `Stools: ${stool} so far; goal ≥ ${stoolGoal} by day’s end.` })
@@ -88,7 +90,7 @@ export default function Dashboard(){
       <div className="md:col-span-2 space-y-4">
         <Card title="Today at a glance">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-            <StatPill label="Age" value={age ? age.label : '—'} sub={baby ? new Date(baby.birthIso).toLocaleString() : ''} />
+            <StatPill label="Age" value={age ? age.label : '—'} sub={baby ? formatDateTimePacific(new Date(baby.birthIso)) : ''} />
             <StatPill label="Feedings (today)" value={feedings.length} sub="Log each side/ bottle" />
             <StatPill label="Wet diapers (today)" value={diapers.filter(d=>d.type!=='dirty').length} sub={`Target ≥ ${wetTarget}`} />
             <StatPill label="Stools (today)" value={diapers.filter(d=>d.type!=='wet').length} sub={`Target ≥ ${stoolGoal}`} />
@@ -121,7 +123,7 @@ export default function Dashboard(){
         <Card title="Last feeding">
           {lastFeeding ? (
             <div className="text-sm">
-              <div>{new Date(lastFeeding.datetime).toLocaleString()}</div>
+              <div>{formatDateTimePacific(new Date(lastFeeding.datetime))}</div>
               <div className="text-gray-600">Method: {lastFeeding.method}{lastFeeding.side ? ` • ${lastFeeding.side}` : ''}</div>
               {lastFeeding.durationMin ? <div>Duration: {lastFeeding.durationMin} min</div> : null}
               {lastFeeding.amountMl ? <div>Amount: {lastFeeding.amountMl} mL</div> : null}

@@ -29,6 +29,7 @@ export default function Header() {
           <NavItem to="/diapers" label="Diapers" />
           <NavItem to="/sleep" label="Sleep" />
           <NavItem to="/growth" label="Growth" />
+          <NavItem to="/meds" label="Meds" />
           <NavItem to="/resources" label="Resources" />
           <NavItem to="/settings" label="Settings" />
           {secret && <NavItem to="/blessings" label="✨ Blessings" />}

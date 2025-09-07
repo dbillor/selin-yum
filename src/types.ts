@@ -44,3 +44,12 @@ export interface BabyProfile {
   birthIso: string; // precise birth date time
   timezone?: string;
 }
+
+export type MedicationName = 'ibuprofen' | 'acetaminophen';
+export interface MedicationDose {
+  id?: number;
+  datetime: string; // ISO
+  name: MedicationName;
+  doseMg?: number;
+  notes?: string;
+}

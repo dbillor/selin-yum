@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Card from '../components/Card'
 import { addFeeding, deleteFeeding, getFeedings } from '../api'
 import type { Feeding } from '../types'
-import { prettyDateTime, mlToOz, ozToMl } from '../utils'
+import { prettyDateTime, mlToOz, ozToMl, formatDatePacific, pacificDateKey, formatDateTimePacific } from '../utils'
 import { Line } from 'react-chartjs-2'
 import { Chart as ChartJS, LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend } from 'chart.js'
 
@@ -133,8 +133,8 @@ function FeedingTrends({ entries }: { entries: Feeding[] }){
     const now = new Date()
     const start = new Date(now)
     start.setDate(now.getDate() - (days - 1))
-    const fmt = (d: Date) => d.toLocaleDateString()
-    const key = (d: Date) => d.toISOString().slice(0,10)
+    const fmt = (d: Date) => formatDatePacific(d)
+    const key = (d: Date) => pacificDateKey(d)
 
     const dayKeys: string[] = []
     const labels: string[] = []
@@ -150,7 +150,7 @@ function FeedingTrends({ entries }: { entries: Feeding[] }){
     for (const k of dayKeys) { counts[k] = 0; mls[k] = 0 }
 
     for (const e of entries) {
-      const dkey = e.datetime.slice(0,10)
+      const dkey = pacificDateKey(e.datetime)
       if (dkey >= dayKeys[0] && dkey <= dayKeys[dayKeys.length-1]) {
         counts[dkey] = (counts[dkey] || 0) + 1
         if (typeof e.amountMl === 'number') mls[dkey] = (mls[dkey] || 0) + e.amountMl
@@ -217,7 +217,7 @@ function FeedEventsTimeline({ entries, hours = 48 }: { entries: Feeding[]; hours
   }
 
   function title(e: Feeding){
-    const dt = new Date(e.datetime).toLocaleString()
+    const dt = formatDateTimePacific(new Date(e.datetime))
     const parts = [
       `Time: ${dt}`,
       `Method: ${e.method}${e.side ? ` • ${e.side}` : ''}`,
@@ -231,7 +231,7 @@ function FeedEventsTimeline({ entries, hours = 48 }: { entries: Feeding[]; hours
   return (
     <div className="space-y-2">
       <div className="text-xs text-gray-600 flex items-center justify-between">
-        <span>{start.toLocaleString()}</span>
+        <span>{formatDateTimePacific(start)}</span>
         <span>Now</span>
       </div>
       <div className="relative h-16 rounded-md border border-gray-200 bg-gray-50">

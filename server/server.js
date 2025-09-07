@@ -70,12 +70,13 @@ function ensureStore() {
   if (!existsSync(DATA_DIR)) mkdirSync(DATA_DIR, { recursive: true })
   if (!existsSync(DATA_PATH)) {
     const initial = {
-      seq: { feedings: 1, diapers: 1, sleeps: 1, growth: 1, baby: 1 },
+      seq: { feedings: 1, diapers: 1, sleeps: 1, growth: 1, baby: 1, medications: 1 },
       feedings: [],
       diapers: [],
       sleeps: [],
       growth: [],
-      baby: []
+      baby: [],
+      medications: []
     }
     writeFileSync(DATA_PATH, JSON.stringify(initial, null, 2))
   }
@@ -136,7 +137,8 @@ const server = createServer(async (req, res) => {
       feedings: db.feedings,
       diapers: db.diapers,
       sleeps: db.sleeps,
-      growth: db.growth
+      growth: db.growth,
+      medications: db.medications
     })
   }
   if (pathname === '/api/import' && req.method === 'POST') {
@@ -147,12 +149,21 @@ const server = createServer(async (req, res) => {
     if (incoming.diapers) db.diapers = incoming.diapers
     if (incoming.sleeps) db.sleeps = incoming.sleeps
     if (incoming.growth) db.growth = incoming.growth
+    if (incoming.medications) db.medications = incoming.medications
+    // Recalculate sequence counters to avoid ID collisions on next inserts
+    const cols = ['feedings','diapers','sleeps','growth','baby','medications']
+    for (const c of cols) {
+      const arr = db[c] || []
+      const maxId = arr.reduce((m, r) => (typeof r.id === 'number' && r.id > m ? r.id : m), 0)
+      if (!db.seq) db.seq = {}
+      db.seq[c] = (maxId || 0) + 1
+    }
     save(db)
     return send(res, 200, { ok: true })
   }
 
   // Collections helper
-  const collections = ['feedings', 'diapers', 'sleeps', 'growth', 'baby']
+  const collections = ['feedings', 'diapers', 'sleeps', 'growth', 'baby', 'medications']
   const col = collections.find(c => pathname?.startsWith(`/api/${c}`))
   if (col) {
     const db = load()

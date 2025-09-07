@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import Card from '../components/Card'
 import { addGrowth, deleteGrowth, getGrowth } from '../api'
 import type { Growth } from '../types'
-import { prettyDateTime } from '../utils'
+import { prettyDateTime, formatDatePacific } from '../utils'
 import { Line } from 'react-chartjs-2'
 import {
   Chart as ChartJS, LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend
@@ -38,7 +38,7 @@ export default function GrowthPage(){
   const [justSaved, setJustSaved] = useState(false)
   function triggerSaved(){ setJustSaved(true); setTimeout(()=>setJustSaved(false), 900) }
 
-  const labels = entries.map(e => new Date(e.datetime).toLocaleDateString())
+  const labels = entries.map(e => formatDatePacific(new Date(e.datetime)))
   const weightData = entries.map(e => (e.weightGrams||0)/1000)
   const lengthData = entries.map(e => (e.lengthCm||0))
 
