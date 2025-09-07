@@ -74,11 +74,15 @@ export default function GrowthPage(){
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <h3 className="font-medium mb-2">Weight (kg)</h3>
-              <Line data={{ labels, datasets: [{ label: 'Weight', data: weightData }] }} options={{ responsive: true, maintainAspectRatio: false }} height={240} />
+              <div className="relative h-64">
+                <Line data={{ labels, datasets: [{ label: 'Weight', data: weightData }] }} options={{ responsive: true, maintainAspectRatio: false }} />
+              </div>
             </div>
             <div>
               <h3 className="font-medium mb-2">Length (cm)</h3>
-              <Line data={{ labels, datasets: [{ label: 'Length', data: lengthData }] }} options={{ responsive: true, maintainAspectRatio: false }} height={240} />
+              <div className="relative h-64">
+                <Line data={{ labels, datasets: [{ label: 'Length', data: lengthData }] }} options={{ responsive: true, maintainAspectRatio: false }} />
+              </div>
             </div>
           </div>
         ) : <div className="text-sm text-gray-500">Add some measurements to see charts.</div>}

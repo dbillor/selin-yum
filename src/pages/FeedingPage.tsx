@@ -100,6 +100,10 @@ export default function FeedingPage(){
         <FeedingTrends entries={entries} />
       </Card>
 
+      <Card title="Feed events (last 48h)">
+        <FeedEventsTimeline entries={entries} hours={48} />
+      </Card>
+
       <Card title="History">
         <div className="space-y-2 text-sm max-h-[60vh] overflow-auto pr-1">
           {entries.map(e => (
@@ -165,11 +169,102 @@ function FeedingTrends({ entries }: { entries: Feeding[] }){
     <div className="grid md:grid-cols-2 gap-6">
       <div>
         <h3 className="font-medium mb-2">Feedings per day</h3>
-        <Line data={{ labels, datasets: [{ label: 'Count', data: countSeries, borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,.2)' }] }} options={{ responsive: true, maintainAspectRatio: false }} height={240} />
+        <div className="relative h-64">
+          <Line
+            data={{ labels, datasets: [{ label: 'Count', data: countSeries, borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,.2)' }] }}
+            options={{ responsive: true, maintainAspectRatio: false }}
+          />
+        </div>
       </div>
       <div>
         <h3 className="font-medium mb-2">Bottle/formula volume (mL)</h3>
-        <Line data={{ labels, datasets: [{ label: 'mL', data: mlSeries, borderColor: '#059669', backgroundColor: 'rgba(5,150,105,.2)' }] }} options={{ responsive: true, maintainAspectRatio: false }} height={240} />
+        <div className="relative h-64">
+          <Line
+            data={{ labels, datasets: [{ label: 'mL', data: mlSeries, borderColor: '#059669', backgroundColor: 'rgba(5,150,105,.2)' }] }}
+            options={{ responsive: true, maintainAspectRatio: false }}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function FeedEventsTimeline({ entries, hours = 48 }: { entries: Feeding[]; hours?: number }){
+  const now = new Date()
+  const start = new Date(now.getTime() - hours * 60 * 60 * 1000)
+  const events = entries
+    .filter(e => {
+      const t = new Date(e.datetime).getTime()
+      return t >= start.getTime() && t <= now.getTime()
+    })
+    .sort((a, b) => new Date(a.datetime).getTime() - new Date(b.datetime).getTime())
+
+  if (events.length === 0) return <div className="text-sm text-gray-500">No events in the last {hours} hours.</div>
+
+  const spanMs = now.getTime() - start.getTime()
+  const ticks = 8 // number of tick marks including start/end
+  const tickMs = spanMs / (ticks - 1)
+
+  function pctFromDate(d: string){
+    const t = new Date(d).getTime()
+    return ((t - start.getTime()) / spanMs) * 100
+  }
+
+  function color(method: Feeding['method']){
+    if (method === 'breast') return 'bg-indigo-500'
+    if (method === 'bottle-breastmilk') return 'bg-emerald-500'
+    return 'bg-amber-500'
+  }
+
+  function title(e: Feeding){
+    const dt = new Date(e.datetime).toLocaleString()
+    const parts = [
+      `Time: ${dt}`,
+      `Method: ${e.method}${e.side ? ` • ${e.side}` : ''}`,
+      e.durationMin ? `Duration: ${e.durationMin} min` : '',
+      typeof e.amountMl === 'number' ? `Amount: ${e.amountMl} mL` : '',
+      e.notes ? `Notes: ${e.notes}` : ''
+    ].filter(Boolean)
+    return parts.join('\n')
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="text-xs text-gray-600 flex items-center justify-between">
+        <span>{start.toLocaleString()}</span>
+        <span>Now</span>
+      </div>
+      <div className="relative h-16 rounded-md border border-gray-200 bg-gray-50">
+        {/* baseline */}
+        <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 h-px bg-gray-300" />
+
+        {/* ticks */}
+        {Array.from({ length: ticks }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute top-0 bottom-0 w-px bg-gray-200"
+            style={{ left: `${(i / (ticks - 1)) * 100}%` }}
+          />
+        ))}
+
+        {/* dots */}
+        {events.map((e, idx) => (
+          <div
+            key={e.id ?? `${e.datetime}-${idx}`}
+            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2"
+            style={{ left: `${pctFromDate(e.datetime)}%` }}
+            title={title(e)}
+          >
+            <div
+              className={`w-2.5 h-2.5 rounded-full ring-2 ring-white shadow ${color(e.method)}`}
+            />
+          </div>
+        ))}
+      </div>
+      <div className="flex items-center gap-3 text-xs text-gray-600">
+        <span className="inline-flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-indigo-500" /> Breast</span>
+        <span className="inline-flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-emerald-500" /> Bottle (BM)</span>
+        <span className="inline-flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-full bg-amber-500" /> Formula</span>
       </div>
     </div>
   )

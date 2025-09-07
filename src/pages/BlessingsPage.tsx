@@ -3,6 +3,7 @@ import Card from '../components/Card'
 import { getBaby } from '../api'
 import type { BabyProfile } from '../types'
 import { ageFromBirth, prettyDateTime } from '../utils'
+import FeedRaceGame from '../components/FeedRaceGame'
 
 const VIRGO_ASCII = `
                  .-''""''-.
@@ -53,6 +54,7 @@ function chineseElement(year: number) {
 
 export default function BlessingsPage(){
   const [baby, setBaby] = useState<BabyProfile | null>(null)
+  const [showGame, setShowGame] = useState(false)
 
   useEffect(() => { getBaby().then(setBaby) }, [])
 
@@ -68,10 +70,11 @@ export default function BlessingsPage(){
 
   return (
     <div className="grid gap-4">
-      <Card title={`Blessings for ${name}`}>
+      {showGame && <FeedRaceGame onClose={() => setShowGame(false)} />}
+      <Card title={`Blessings for ${name}`} actions={<button className="text-xl opacity-0 hover:opacity-100 focus:opacity-100 transition cursor-pointer" title="Blessings mini‑game" onClick={() => setShowGame(true)} aria-label="Open mini game">🍼</button>}>
         <div className="grid md:grid-cols-2 gap-6">
           <div>
-            <pre className="p-3 rounded-md bg-white border border-gray-200 leading-4 overflow-auto text-sm whitespace-pre">
+            <pre className="p-3 rounded-md bg-white border border-gray-200 leading-4 overflow-auto text-sm whitespace-pre" onDoubleClick={() => setShowGame(true)} title="double‑click for a surprise">
 {VIRGO_ASCII}
             </pre>
             <div className="mt-3 text-sm text-gray-700">
@@ -106,4 +109,3 @@ export default function BlessingsPage(){
     </div>
   )
 }
-

@@ -4,6 +4,23 @@ Beautiful, simple, and evidence-informed baby feeding / diaper / sleep / growth 
 
 **Default profile:** Selin Billor — born 2025-09-04 23:53.
 
+## What this app does (quick)
+- Log feedings (breast, bottle, formula) in a few taps.
+- Track diapers with adaptive, day‑of‑life targets to spot hydration.
+- Record sleep sessions and notes; see gentle daily insights.
+- View simple growth trends and a today‑at‑a‑glance dashboard.
+- Install as a PWA; export/import your data for safe keeping.
+
+## Why this is special to me and my daughter
+I built this for Selin in the quiet, joyful, sleep‑deprived hours around her birth. We
+wanted something calm and trustworthy — fast one‑handed logging, diaper goals that adapt
+in the first week, and small prompts that reduce mental load instead of adding to it.
+
+Most baby apps felt noisy or tried to upsell us. This one is different: focused, private
+by default, and grounded in evidence so we can be present with her. The “Blessings” page
+is a tiny love letter to her first days — a reminder that the data serves the moments,
+not the other way around.
+
 ## Features
 - **Feeding log** (breast/bottle/formula), sides & duration or mL/oz.
 - **Diapers** (wet/dirty/mixed) with first-week targets that adapt by day of life.
@@ -12,7 +29,7 @@ Beautiful, simple, and evidence-informed baby feeding / diaper / sleep / growth 
 - **Dashboard** with age, daily counts, and science-backed tips.
 - **PWA**: install to home screen; static assets are cached. Data persists to the backend.
 - **Export/Import JSON** for backups or device transfer.
-- **No server required**. Privacy-friendly by default.
+- **No accounts or ads**. Privacy-friendly by default.
 
 ## Quick start
 ```bash
