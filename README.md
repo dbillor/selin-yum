@@ -51,20 +51,19 @@ The app requires a reachable backend.
 ### Offline behavior
 Static assets load from cache when available; data operations require the backend and will not fall back to local storage.
 
-### One‑click Render (backend)
-This repo includes a Render Blueprint at `render.yaml` (with a persistent disk).
+### One‑click Render (single service)
+This repo includes a Render Blueprint at `render.yaml`. It now builds the frontend and serves it from the Node server alongside the API. Result: one Web Service, minimal config.
 
 Steps:
 - Push this repo to GitHub.
 - In Render: New → Blueprint → choose your repo; it will detect `render.yaml`.
-- Confirm the `selin-baby-api` service; deploy. Health path `/api/health` should return 200.
-- Copy your service URL (e.g., `https://selin-baby-api.onrender.com`). Set your frontend `VITE_API_URL=https://selin-baby-api.onrender.com/api` and redeploy the frontend.
+- Deploy the `selin-baby-api` service (name can be kept). It will:
+  - Build: `npm install && npm run build`
+  - Start: `npm start` (which runs `node server/server.js`)
+  - Serve the built SPA and expose API under `/api/*` with health at `/api/health`.
+- Persistent disk is provisioned automatically; data is stored under `/data/selin/db.json`.
 
-- Deploy the minimal API in `server/server.js` to a host with persistent storage (e.g., Render, Fly.io, Railway, a small VPS), or use your own backend.
-- Expose routes under `/api/*` and ensure `/api/health` returns 200.
-- Set `VITE_API_URL` to your API base (e.g., `https://your-host/api`) in your Netlify/Vercel project environment vars, then rebuild/deploy.
-
-When the app detects a reachable backend, it uses it for all CRUD; otherwise it falls back to local storage.
+Open your service root URL to see the app. No `VITE_API_URL` is required because the app defaults to same-origin `/api`.
 
 ## Design choices
 - Client-side React (Vite + TypeScript + Tailwind), with a tiny built-in backend for persistence where needed.

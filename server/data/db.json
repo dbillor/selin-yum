@@ -1,0 +1,42 @@
+{
+  "seq": {
+    "feedings": 3,
+    "diapers": 1,
+    "sleeps": 1,
+    "growth": 2,
+    "baby": 2
+  },
+  "feedings": [
+    {
+      "id": 1,
+      "datetime": "2025-09-07T21:14:04.961Z",
+      "method": "breast",
+      "side": "left",
+      "durationMin": 10
+    },
+    {
+      "id": 2,
+      "datetime": "2025-09-07T21:15:42.393Z",
+      "method": "breast",
+      "side": "left",
+      "durationMin": 10
+    }
+  ],
+  "diapers": [],
+  "sleeps": [],
+  "growth": [
+    {
+      "id": 1,
+      "datetime": "2025-09-05T06:53:00.000Z",
+      "weightGrams": 3544,
+      "notes": "Birth weight (7 lb 13 oz)"
+    }
+  ],
+  "baby": [
+    {
+      "id": 1,
+      "name": "Selin Billor",
+      "birthIso": "2025-09-04T23:53:00.000Z"
+    }
+  ]
+}
