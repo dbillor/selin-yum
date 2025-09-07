@@ -10,7 +10,7 @@ Beautiful, simple, and evidence-informed baby feeding / diaper / sleep / growth 
 - **Sleep** sessions with notes.
 - **Growth** (weight, length, head) with trend charts.
 - **Dashboard** with age, daily counts, and science-backed tips.
-- **Offline-first PWA**: install to home screen. Your data stays in your browser (IndexedDB/Dexie).
+- **Offline-first PWA**: install to home screen. Diapers/Sleep/Growth default to local (IndexedDB). Feedings are saved to the backend API.
 - **Export/Import JSON** for backups or device transfer.
 - **No server required**. Privacy-friendly by default.
 
@@ -20,10 +20,13 @@ Beautiful, simple, and evidence-informed baby feeding / diaper / sleep / growth 
 # 2) Install deps
 npm install
 
-# 3) Run locally
+# 3) Run the API (persists to server/data/db.json)
+npm run server
+
+# 4) In a second terminal, run the app
 npm run dev
 
-# 4) Deploy to Vercel
+# 5) Deploy to Vercel
 #    - Push this folder to a GitHub repo
 #    - Import the repo in Vercel (Framework: "Vite")
 #    - Build command: npm run build
@@ -32,7 +35,7 @@ npm run dev
 You can also host on Netlify, GitHub Pages, Cloudflare Pages, etc.
 
 ## Design choices
-- Pure client-side React (Vite + TypeScript + Tailwind). IndexedDB via Dexie.
+- Client-side React (Vite + TypeScript + Tailwind), with a tiny built-in backend for persistence where needed.
 - PWA with a tiny service worker and manifest for offline use.
 - Evidence-informed defaults and helper text from AAP/CDC/WHO.
 - Conservative scope: trend charts (not percentiles) to avoid embedding large WHO LMS datasets; link to official charts instead.
