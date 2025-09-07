@@ -1,0 +1,10 @@
+
+@layer components {
+  .input {
+    @apply w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 text-gray-900;
+    /* Ensure native dropdown menus render in light theme for readability */
+    color-scheme: light;
+  }
+  .btn { @apply inline-flex items-center justify-center px-3 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700; }
+  .link { @apply text-indigo-600 hover:underline; }
+}

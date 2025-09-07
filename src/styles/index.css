@@ -1,0 +1,11 @@
+@import './components.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root { color-scheme: light dark; }
+.dark { color-scheme: dark; }
+
+/* Simple focus ring */
+*:focus-visible { outline: 2px dashed #4f46e5; outline-offset: 2px; }
