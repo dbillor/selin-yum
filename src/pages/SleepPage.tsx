@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react'
 import Card from '../components/Card'
-import { db } from '../db'
+import { addSleep, deleteSleep, getSleeps } from '../api'
 import type { Sleep } from '../types'
 import { prettyDateTime } from '../utils'
 
@@ -11,25 +11,27 @@ export default function SleepPage(){
     start: new Date().toISOString(),
   })
 
-  useEffect(()=>{
-    db.sleeps.orderBy('start').reverse().toArray().then(setEntries)
-  }, [])
+  useEffect(()=>{ getSleeps().then(setEntries) }, [])
 
   async function submit(e: React.FormEvent){
     e.preventDefault()
-    await db.sleeps.add(form)
+    await addSleep(form)
     setForm({ start: new Date().toISOString() })
-    setEntries(await db.sleeps.orderBy('start').reverse().toArray())
+    setEntries(await getSleeps())
+    triggerSaved()
   }
   async function remove(id?: number){
     if (!id) return
-    await db.sleeps.delete(id)
-    setEntries(await db.sleeps.orderBy('start').reverse().toArray())
+    await deleteSleep(id)
+    setEntries(await getSleeps())
   }
+
+  const [justSaved, setJustSaved] = useState(false)
+  function triggerSaved(){ setJustSaved(true); setTimeout(()=>setJustSaved(false), 900) }
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      <Card title="Log sleep">
+      <Card title="Log sleep" actions={justSaved ? <span className="text-sm text-green-700 animate-pop">Saved!</span> : null}>
         <form onSubmit={submit} className="grid gap-3 text-sm">
           <label className="grid gap-1">
             <span className="text-xs font-medium">Start</span>

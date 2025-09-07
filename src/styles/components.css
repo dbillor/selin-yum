@@ -8,3 +8,11 @@
   .btn { @apply inline-flex items-center justify-center px-3 py-2 rounded-md bg-indigo-600 text-white hover:bg-indigo-700; }
   .link { @apply text-indigo-600 hover:underline; }
 }
+
+/* tiny celebratory pop animation */
+@keyframes pop-in {
+  0% { transform: scale(0.8); opacity: 0; }
+  40% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.animate-pop { animation: pop-in 300ms ease-out; }

@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react'
 import Card from '../components/Card'
-import { db } from '../db'
+import { addGrowth, deleteGrowth, getGrowth } from '../api'
 import type { Growth } from '../types'
 import { prettyDateTime } from '../utils'
 import { Line } from 'react-chartjs-2'
@@ -20,21 +20,23 @@ export default function GrowthPage(){
     headCm: undefined,
   })
 
-  useEffect(()=>{
-    db.growth.orderBy('datetime').toArray().then(setEntries)
-  }, [])
+  useEffect(()=>{ getGrowth().then(setEntries) }, [])
 
   async function submit(e: React.FormEvent){
     e.preventDefault()
-    await db.growth.add(form)
+    await addGrowth(form)
     setForm({ datetime: new Date().toISOString() })
-    setEntries(await db.growth.orderBy('datetime').toArray())
+    setEntries(await getGrowth())
+    triggerSaved()
   }
   async function remove(id?: number){
     if (!id) return
-    await db.growth.delete(id)
-    setEntries(await db.growth.orderBy('datetime').toArray())
+    await deleteGrowth(id)
+    setEntries(await getGrowth())
   }
+
+  const [justSaved, setJustSaved] = useState(false)
+  function triggerSaved(){ setJustSaved(true); setTimeout(()=>setJustSaved(false), 900) }
 
   const labels = entries.map(e => new Date(e.datetime).toLocaleDateString())
   const weightData = entries.map(e => (e.weightGrams||0)/1000)
@@ -42,7 +44,7 @@ export default function GrowthPage(){
 
   return (
     <div className="grid gap-4">
-      <Card title="Record a measurement">
+      <Card title="Record a measurement" actions={justSaved ? <span className="text-sm text-green-700 animate-pop">Saved!</span> : null}>
         <form onSubmit={submit} className="grid md:grid-cols-4 gap-3 text-sm">
           <label className="grid gap-1">
             <span className="text-xs font-medium">Date</span>

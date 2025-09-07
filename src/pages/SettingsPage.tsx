@@ -1,29 +1,21 @@
 
 import { useEffect, useState } from 'react'
 import Card from '../components/Card'
-import { db } from '../db'
+import { getBaby, saveBaby, exportAll, importAll } from '../api'
 import type { BabyProfile } from '../types'
 
 export default function SettingsPage(){
   const [baby, setBaby] = useState<BabyProfile | null>(null)
-  useEffect(()=>{ db.baby.toArray().then(rows => setBaby(rows[0])) }, [])
+  useEffect(()=>{ getBaby().then(b => setBaby(b)) }, [])
 
   async function save(){
     if (!baby) return
-    const rows = await db.baby.toArray()
-    if (rows[0]) await db.baby.update(rows[0].id!, baby)
-    else await db.baby.add(baby)
+    await saveBaby(baby)
     alert('Saved')
   }
 
   async function exportData(){
-    const payload = {
-      baby: await db.baby.toArray(),
-      feedings: await db.feedings.toArray(),
-      diapers: await db.diapers.toArray(),
-      sleeps: await db.sleeps.toArray(),
-      growth: await db.growth.toArray()
-    }
+    const payload = await exportAll()
     const blob = new Blob([JSON.stringify(payload, null, 2)], {type:'application/json'})
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -38,11 +30,7 @@ export default function SettingsPage(){
     if (!file) return
     const txt = await file.text()
     const data = JSON.parse(txt)
-    if (data.baby) { await db.baby.clear(); await db.baby.bulkAdd(data.baby) }
-    if (data.feedings) { await db.feedings.clear(); await db.feedings.bulkAdd(data.feedings) }
-    if (data.diapers) { await db.diapers.clear(); await db.diapers.bulkAdd(data.diapers) }
-    if (data.sleeps) { await db.sleeps.clear(); await db.sleeps.bulkAdd(data.sleeps) }
-    if (data.growth) { await db.growth.clear(); await db.growth.bulkAdd(data.growth) }
+    await importAll(data)
     alert('Imported! Reloading…')
     location.reload()
   }

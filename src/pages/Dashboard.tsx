@@ -2,7 +2,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import Card from '../components/Card'
 import { StatPill } from '../components/StatPill'
-import { db } from '../db'
+import { getBaby, getDiapers, getFeedings, getSleeps, addFeeding } from '../api'
+import { Link } from 'react-router-dom'
 import type { Feeding, Diaper, Sleep, BabyProfile } from '../types'
 import { ageFromBirth, wetDiaperTarget, stoolTarget } from '../utils'
 import { startOfDay, endOfDay, isAfter, parseISO } from 'date-fns'
@@ -15,19 +16,18 @@ export default function Dashboard(){
 
   useEffect(() => {
     (async () => {
-      const b = await db.baby.toArray()
-      if (b.length === 0) {
-        // default profile for Selin
-        await db.baby.add({ name: 'Selin Billor', birthIso: '2025-09-04T23:53:00' })
-      }
-      const bb = await db.baby.toArray()
-      setBaby(bb[0])
+      const bb = await getBaby()
+      setBaby(bb)
       const today = new Date()
       const sd = startOfDay(today).toISOString()
       const ed = endOfDay(today).toISOString()
-      setFeedings(await db.feedings.where('datetime').between(sd, ed, true, true).toArray())
-      setDiapers(await db.diapers.where('datetime').between(sd, ed, true, true).toArray())
-      setSleeps(await db.sleeps.where('start').below(ed).toArray())
+      // API returns full lists; filter client-side for today to keep API simple
+      const allFeedings = await getFeedings()
+      const allDiapers = await getDiapers()
+      const allSleeps = await getSleeps()
+      setFeedings(allFeedings.filter(f => f.datetime >= sd && f.datetime <= ed))
+      setDiapers(allDiapers.filter(d => d.datetime >= sd && d.datetime <= ed))
+      setSleeps(allSleeps.filter(s => s.start <= ed))
     })()
   }, [])
 
@@ -86,10 +86,10 @@ export default function Dashboard(){
 
         <Card title="Shortcuts">
           <div className="grid gap-2">
-            <a className="btn" href="/feeding">Open Feeding</a>
-            <a className="btn" href="/diapers">Open Diapers</a>
-            <a className="btn" href="/sleep">Open Sleep</a>
-            <a className="btn" href="/resources">Open Resources</a>
+            <Link className="btn" to="/feeding">Open Feeding</Link>
+            <Link className="btn" to="/diapers">Open Diapers</Link>
+            <Link className="btn" to="/sleep">Open Sleep</Link>
+            <Link className="btn" to="/resources">Open Resources</Link>
           </div>
         </Card>
       </div>
@@ -104,6 +104,7 @@ function QuickLog(){
   const [amount, setAmount] = useState<number>(60)
   const [notes, setNotes] = useState('')
 
+  const [justSaved, setJustSaved] = useState(false)
   async function submit(){
     const entry: Feeding = {
       datetime: new Date().toISOString(),
@@ -113,9 +114,9 @@ function QuickLog(){
       amountMl: method!=='breast' ? amount : undefined,
       notes: notes || undefined
     }
-    await db.feedings.add(entry)
+    await addFeeding(entry)
     setNotes('')
-    alert('Logged!')
+    setJustSaved(true); setTimeout(()=>setJustSaved(false), 900)
   }
   return (
     <form onSubmit={(e)=>{e.preventDefault(); submit();}} className="grid md:grid-cols-5 gap-3 text-sm">
@@ -152,8 +153,9 @@ function QuickLog(){
         <span className="text-xs font-medium">Notes</span>
         <input className="input" value={notes} onChange={e=>setNotes(e.target.value)} placeholder="Latch, spit-up, mood…" />
       </label>
-      <div className="md:col-span-5">
+      <div className="md:col-span-5 flex items-center gap-3">
         <button className="px-3 py-2 bg-indigo-600 text-white rounded-md">Log Feeding</button>
+        {justSaved && <span className="text-green-700 text-sm animate-pop">Saved!</span>}
       </div>
     </form>
   )

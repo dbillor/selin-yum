@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react'
 import Card from '../components/Card'
-import { db } from '../db'
+import { addFeeding, deleteFeeding, getFeedings } from '../api'
 import type { Feeding } from '../types'
 import { prettyDateTime, mlToOz, ozToMl } from '../utils'
 
@@ -14,25 +14,30 @@ export default function FeedingPage(){
     durationMin: 10,
   })
 
-  useEffect(()=>{
-    db.feedings.orderBy('datetime').reverse().toArray().then(setEntries)
-  }, [])
+  useEffect(()=>{ getFeedings().then(setEntries) }, [])
 
   async function submit(e: React.FormEvent){
     e.preventDefault()
-    await db.feedings.add(form)
+    await addFeeding(form)
     setForm({ datetime: new Date().toISOString(), method: 'breast', side: 'left', durationMin: 10 })
-    setEntries(await db.feedings.orderBy('datetime').reverse().toArray())
+    setEntries(await getFeedings())
+    triggerSaved()
   }
   async function remove(id?: number){
     if (!id) return
-    await db.feedings.delete(id)
-    setEntries(await db.feedings.orderBy('datetime').reverse().toArray())
+    await deleteFeeding(id)
+    setEntries(await getFeedings())
+  }
+
+  const [justSaved, setJustSaved] = useState(false)
+  function triggerSaved(){
+    setJustSaved(true)
+    setTimeout(()=>setJustSaved(false), 900)
   }
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      <Card title="Log a feeding">
+      <Card title="Log a feeding" actions={justSaved ? <span className="text-sm text-green-700 animate-pop">Saved!</span> : null}>
         <form onSubmit={submit} className="grid gap-3 text-sm">
           <label className="grid gap-1">
             <span className="text-xs font-medium">Date & time</span>

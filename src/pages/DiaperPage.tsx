@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react'
 import Card from '../components/Card'
-import { db } from '../db'
+import { addDiaper, deleteDiaper, getDiapers, getBaby } from '../api'
 import type { Diaper, BabyProfile } from '../types'
 import { prettyDateTime, ageFromBirth, wetDiaperTarget, stoolTarget } from '../utils'
 import { startOfDay } from 'date-fns'
@@ -15,21 +15,25 @@ export default function DiaperPage(){
   const [baby, setBaby] = useState<BabyProfile | null>(null)
 
   useEffect(()=>{
-    db.diapers.orderBy('datetime').reverse().toArray().then(setEntries)
-    db.baby.toArray().then(rows=>setBaby(rows[0]))
+    getDiapers().then(setEntries)
+    getBaby().then(b=>setBaby(b))
   }, [])
 
   async function submit(e: React.FormEvent){
     e.preventDefault()
-    await db.diapers.add(form)
+    await addDiaper(form)
     setForm({ datetime: new Date().toISOString(), type: 'wet' })
-    setEntries(await db.diapers.orderBy('datetime').reverse().toArray())
+    setEntries(await getDiapers())
+    triggerSaved()
   }
   async function remove(id?: number){
     if (!id) return
-    await db.diapers.delete(id)
-    setEntries(await db.diapers.orderBy('datetime').reverse().toArray())
+    await deleteDiaper(id)
+    setEntries(await getDiapers())
   }
+
+  const [justSaved, setJustSaved] = useState(false)
+  function triggerSaved(){ setJustSaved(true); setTimeout(()=>setJustSaved(false), 900) }
 
   const dayOfLife = (() => {
     if (!baby) return 0
@@ -43,7 +47,7 @@ export default function DiaperPage(){
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      <Card title="Log a diaper">
+      <Card title="Log a diaper" actions={justSaved ? <span className="text-sm text-green-700 animate-pop">Saved!</span> : null}>
         <form onSubmit={submit} className="grid gap-3 text-sm">
           <label className="grid gap-1">
             <span className="text-xs font-medium">Date & time</span>
