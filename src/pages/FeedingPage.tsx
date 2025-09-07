@@ -1,9 +1,13 @@
 
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import Card from '../components/Card'
 import { addFeeding, deleteFeeding, getFeedings } from '../api'
 import type { Feeding } from '../types'
 import { prettyDateTime, mlToOz, ozToMl } from '../utils'
+import { Line } from 'react-chartjs-2'
+import { Chart as ChartJS, LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend } from 'chart.js'
+
+ChartJS.register(LineElement, PointElement, LinearScale, CategoryScale, Tooltip, Legend)
 
 export default function FeedingPage(){
   const [entries, setEntries] = useState<Feeding[]>([])
@@ -92,6 +96,10 @@ export default function FeedingPage(){
         </form>
       </Card>
 
+      <Card title="Trends (last 7 days)">
+        <FeedingTrends entries={entries} />
+      </Card>
+
       <Card title="History">
         <div className="space-y-2 text-sm max-h-[60vh] overflow-auto pr-1">
           {entries.map(e => (
@@ -111,6 +119,58 @@ export default function FeedingPage(){
           {entries.length===0 && <div className="text-gray-500">No feedings logged yet.</div>}
         </div>
       </Card>
+    </div>
+  )
+}
+
+function FeedingTrends({ entries }: { entries: Feeding[] }){
+  const days = 7
+  const { labels, countSeries, mlSeries } = useMemo(() => {
+    const now = new Date()
+    const start = new Date(now)
+    start.setDate(now.getDate() - (days - 1))
+    const fmt = (d: Date) => d.toLocaleDateString()
+    const key = (d: Date) => d.toISOString().slice(0,10)
+
+    const dayKeys: string[] = []
+    const labels: string[] = []
+    for (let i = 0; i < days; i++) {
+      const d = new Date(start)
+      d.setDate(start.getDate() + i)
+      dayKeys.push(key(d))
+      labels.push(fmt(d))
+    }
+
+    const counts: Record<string, number> = {}
+    const mls: Record<string, number> = {}
+    for (const k of dayKeys) { counts[k] = 0; mls[k] = 0 }
+
+    for (const e of entries) {
+      const dkey = e.datetime.slice(0,10)
+      if (dkey >= dayKeys[0] && dkey <= dayKeys[dayKeys.length-1]) {
+        counts[dkey] = (counts[dkey] || 0) + 1
+        if (typeof e.amountMl === 'number') mls[dkey] = (mls[dkey] || 0) + e.amountMl
+      }
+    }
+
+    const countSeries = dayKeys.map(k => counts[k] || 0)
+    const mlSeries = dayKeys.map(k => mls[k] || 0)
+    return { labels, countSeries, mlSeries }
+  }, [entries])
+
+  const hasAny = entries.length > 0
+  if (!hasAny) return <div className="text-sm text-gray-500">No data yet.</div>
+
+  return (
+    <div className="grid md:grid-cols-2 gap-6">
+      <div>
+        <h3 className="font-medium mb-2">Feedings per day</h3>
+        <Line data={{ labels, datasets: [{ label: 'Count', data: countSeries, borderColor: '#4f46e5', backgroundColor: 'rgba(79,70,229,.2)' }] }} options={{ responsive: true, maintainAspectRatio: false }} height={240} />
+      </div>
+      <div>
+        <h3 className="font-medium mb-2">Bottle/formula volume (mL)</h3>
+        <Line data={{ labels, datasets: [{ label: 'mL', data: mlSeries, borderColor: '#059669', backgroundColor: 'rgba(5,150,105,.2)' }] }} options={{ responsive: true, maintainAspectRatio: false }} height={240} />
+      </div>
     </div>
   )
 }

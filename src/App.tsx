@@ -10,6 +10,7 @@ import GrowthPage from './pages/GrowthPage'
 import SettingsPage from './pages/SettingsPage'
 import ResourcesPage from './pages/ResourcesPage'
 import LoginPage from './pages/LoginPage'
+import BlessingsPage from './pages/BlessingsPage'
 
 export default function App(){
   const [authed, setAuthed] = useState<boolean>(() => {
@@ -36,6 +37,7 @@ export default function App(){
           <Route path="/growth" element={<GrowthPage />} />
           <Route path="/resources" element={<ResourcesPage />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/blessings" element={<BlessingsPage />} />
           <Route path="*" element={<div className="p-8"><h1 className="text-2xl font-semibold">Not Found</h1><Link to="/" className="text-indigo-600 underline">Go home</Link></div>} />
         </Routes>
       </main>
