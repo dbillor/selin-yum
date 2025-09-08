@@ -94,6 +94,16 @@ function load() {
     const maxId = db[c].reduce((m, r) => (typeof r?.id === 'number' && r.id > m ? r.id : m), 0)
     if (typeof db.seq[c] !== 'number' || !isFinite(db.seq[c])) db.seq[c] = maxId + 1
   }
+  // Data normalization: map legacy diaper types to current schema
+  let changed = false
+  if (Array.isArray(db.diapers)) {
+    for (const d of db.diapers) {
+      if (!d || typeof d.type !== 'string') continue
+      const orig = d.type
+      if (orig === 'poop' || orig === 'stool') { d.type = 'dirty'; changed = true }
+    }
+  }
+  if (changed) save(db)
   return db
 }
 
@@ -159,6 +169,12 @@ const server = createServer(async (req, res) => {
     if (incoming.sleeps) db.sleeps = incoming.sleeps
     if (incoming.growth) db.growth = incoming.growth
     if (incoming.medications) db.medications = incoming.medications
+    // Normalize any legacy fields (e.g., diaper type "poop" → "dirty")
+    if (Array.isArray(db.diapers)) {
+      for (const d of db.diapers) {
+        if (d && typeof d.type === 'string' && (d.type === 'poop' || d.type === 'stool')) d.type = 'dirty'
+      }
+    }
     // Recalculate sequence counters to avoid ID collisions on next inserts
     const cols = ['feedings','diapers','sleeps','growth','baby','medications']
     for (const c of cols) {
@@ -184,6 +200,10 @@ const server = createServer(async (req, res) => {
     }
     if (req.method === 'POST' && parts.length === 3) {
       const body = await parseBody(req)
+      // Normalize incoming document for known quirks
+      if (col === 'diapers' && body && typeof body.type === 'string') {
+        if (body.type === 'poop' || body.type === 'stool') body.type = 'dirty'
+      }
       const nextId = db.seq[col]++
       const row = { id: nextId, ...body }
       db[col].push(row)

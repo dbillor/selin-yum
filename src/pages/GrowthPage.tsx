@@ -91,7 +91,7 @@ export default function GrowthPage(){
 
       <Card title="History">
         <div className="space-y-2 text-sm max-h-[50vh] overflow-auto pr-1">
-          {entries.map(e => (
+          {entries.slice().sort((a,b)=> (a.datetime > b.datetime ? -1 : 1)).map(e => (
             <div key={e.id} className="p-2 rounded-md border border-gray-200 bg-white flex items-center justify-between">
               <div>
                 <div className="font-medium">{prettyDateTime(e.datetime)}</div>

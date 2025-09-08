@@ -55,7 +55,7 @@ export default function SleepPage(){
 
       <Card title="History">
         <div className="space-y-2 text-sm max-h-[60vh] overflow-auto pr-1">
-          {entries.map(e => (
+          {entries.slice().sort((a,b)=> (a.start > b.start ? -1 : 1)).map(e => (
             <div key={e.id} className="p-2 rounded-md border border-gray-200 bg-white flex items-center justify-between">
               <div>
                 <div className="font-medium">{prettyDateTime(e.start)} — {e.end ? prettyDateTime(e.end) : '…'}</div>
